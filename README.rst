@@ -2,6 +2,13 @@ scripts to get stats, reports or information from openstack
 ----------------------------------------------------------
 
 
+- sysdrain-offline.sh:
+
+  **USAGE:**
+  ./sysdrain-offline.sh <vm uuid> <destination hypervisor>
+
+  it will migrate a single vm to <destination hypervisor>, the vm will be stopped first.
+
 - nova-ip-tenant-per-hv.sh:
 
   **USAGE:**
