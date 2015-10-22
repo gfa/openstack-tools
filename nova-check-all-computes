@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+HYPERVISORES=`nova hypervisor-list | grep ip | awk '{print $4}' | tr '\n' ' '`
+NET_ID=4197c46d-7f30-4f55-b37a-42a9533b307c
+IMAGE_ID=b1930f71-0717-4398-a270-969c4bbb6bee
+SG_ID=f041bba4-f200-4354-a4fa-a13698468d02
+KEY_ID=yyclouds
+FLAVOR_ID=yygame.standard
+PORT=9022
+TEMPDIR=`mktemp -d`
+
+
+cd $TEMPDIR
+for hypervisor in ${HYPERVISORES}
+do
+    nova boot --poll --flavor ${FLAVOR_ID} --image $IMAGE_ID --nic net-id=$NET_ID --security-groups $SG_ID --key-name $KEY_ID  --availability-zone nova:$hypervisor test-$hypervisor > $hypervisor
+    VM_ID=`grep id $hypervisor | head -1 |awk '{print $4}'`
+    IP=`nova show $VM_ID | grep network |awk '{print $5}' |head -1` 
+    until ( ping -c 1 $IP )
+            do
+                    sleep 10
+                done
+    nova show $VM_ID > $hypervisor_$VM_ID
+    nova console-log $VM_ID > ${hypervisor}_${VM_ID}.log
+    nova delete $VM_ID
+done

@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+TEMP=`mktemp`
+HVs=`nova service-list |grep nova-compute |grep enable | awk '{print $6}'`
+
+
+for hv in ${HVs}
+	do
+	running_vm=`nova hypervisor-show $hv |grep running_vms |awk '{print $4}'`
+	echo "$hv $running_vm" >> $TEMP
+	done
+
+
+cat $TEMP |sort -n -k2

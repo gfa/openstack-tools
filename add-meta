@@ -1,0 +1,4 @@
+#!/bin/sh
+nova meta $1 set 'ip={"type":"game typical","value":["telecom ip","unicom ip","private ip"]}'
+nova meta $1 set remark="yy-备用"
+

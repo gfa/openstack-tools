@@ -1,0 +1,42 @@
+#!/bin/bash
+#317=10.21.181.110
+#317=10.21.181.112
+#317=10.21.181.141
+#317=10.21.181.117
+#317=10.21.181.109
+#nova list |grep load |awk '{print $12}'
+
+set -e
+sudo route del default gw 10.21.181.1 || true
+sudo route add default gw 10.21.181.4 || true
+sudo -i yum -y install  screen
+
+MY_IP=`ifconfig eth0 |grep 'inet addr' |awk -F : '{print $2}' |awk '{print $1}'`
+my_port=`grep -n $MY_IP < $0 |awk -F : '{print $1}'`
+
+echo $my_port
+
+export number_vm=`grep -c 317= $0`
+
+for i in `seq 2 $number_vm`
+do
+	screen -S $i -d -m iperf -s -p 300${i}
+done
+
+
+for i in `grep 317 $0 |grep -v grep |grep -v $MY_IP | awk -F = '{print $2}' `
+do
+	TEMP=`mktemp`
+	cat << EOF > $TEMP
+#!/bin/sh
+while true
+do
+	iperf -c $i -p 300${my_port}
+done
+EOF
+chmod 755 $TEMP
+	screen -S a$i -d -m $TEMP
+done
+
+
+screen -S stress -d -m sudo stress --cpu 10 --io 4 --vm 110 -d 1

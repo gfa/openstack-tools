@@ -1,0 +1,43 @@
+#!/bin/bash
+
+IMAGE=2ee2ab7d-3d33-440e-8a61-0e297c7e22fb
+
+NETWORK=$1
+HV=`nova service-list | grep nova-compute |awk '{print $6}' | tr '\n' ' '`
+TEMP=`mktemp`
+
+neutron net-show $NETWORK &>/dev/null
+if [ $? != 0 ]; then
+	echo "need the network id for the network to test"
+	exit 1
+fi
+
+for hv in $HV
+  do
+  name=`uuidgen`
+  echo "#!/bin/sh" > $TEMP
+  echo echo $name >> $TEMP
+  echo echo $hv >> $TEMP
+  nova boot --user-data $TEMP --image $IMAGE --nic net-id=$NETWORK --flavor 04757df2-4925-4581-9515-4e53da0ba50c --poll --availability-zone nova:$hv $name >/dev/null
+  sleep 10
+  boot=0
+  while [ $boot = 0 ];
+    do
+    nova show $name |grep ACTIVE >/dev/null && boot=1
+    sleep 10
+    done
+
+  sleep 40
+  nova console-log $name |grep $hv >/dev/null 2>/dev/null
+  if [ $? != 0 ]; then
+	echo "$hv FAILED"
+  else
+	echo "$hv OK"
+  fi
+  nova delete $name >/dev/null
+done
+
+
+
+
+rm -f $TEMP
