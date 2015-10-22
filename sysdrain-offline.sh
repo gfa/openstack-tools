@@ -1,6 +1,13 @@
 #!/bin/bash
 #set -e
 #set -x
+# this script will migrate a vm to the specified hypervisor
+# vm **will be stopped**
+#
+# latest version can be pull from
+# https://raw.githubusercontent.com/gfa/openstack-tools/master/sysdrain-offline.sh
+#
+# gfa@zumbi.com.ar 2015
 
 TEMP5=`mktemp -d`
 export TMPDIR=$TEMP5
